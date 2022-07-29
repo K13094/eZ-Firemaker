@@ -13,7 +13,7 @@ import org.osbot.rs07.script.ScriptManifest;
 import util.MouseCursor;
 import util.MouseTrail;
 
-@ScriptManifest(author = "A&K47", info = "Supporting Multiple locations", name = "ez Firemaker", version = 0.1, logo = "")
+@ScriptManifest(author = "A&K", info = "Most up to date firemaking bot. Supporting Multiple locations", name = "ez Firemaker", version = 1.00, logo = "https://i.imgur.com/9nUfZKI.png")
 public class Main extends Script {
 
 	String pLog;
@@ -30,7 +30,6 @@ public class Main extends Script {
 	private GUI gui = new GUI();
 	private LOGLIST loglist;
 	private AREALIST arealist;
-	String test1;
 
 	// items
 	int TINDERBOX = 590;
@@ -231,6 +230,7 @@ public class Main extends Script {
 
 	@Override
 	public int onLoop() throws InterruptedException {
+
 		bank();
 		firemaking();
 		return random(200, 300);
@@ -270,7 +270,6 @@ public class Main extends Script {
 
 	@Override
 	public void onPaint(Graphics2D g) {
-
 		trail.paint(g);
 		cursor.paint(g);
 
