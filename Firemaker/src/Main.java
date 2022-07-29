@@ -231,7 +231,6 @@ public class Main extends Script {
 
 	@Override
 	public int onLoop() throws InterruptedException {
-
 		bank();
 		firemaking();
 		return random(200, 300);
