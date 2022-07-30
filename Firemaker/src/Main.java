@@ -13,12 +13,12 @@ import org.osbot.rs07.script.ScriptManifest;
 import util.MouseCursor;
 import util.MouseTrail;
 
-@ScriptManifest(author = "A&K", info = "Most up to date firemaking bot. Supporting Multiple locations", name = "ez Firemaker", version = 1.00, logo = "https://i.imgur.com/9nUfZKI.png")
+@ScriptManifest(author = "A&K", info = "Most up to date firemaking bot. Supporting Multiple locations", name = "ez Firemaker", version = 1.1, logo = "https://i.imgur.com/9nUfZKI.png")
 public class Main extends Script {
 
 	String pLog;
 
-	// PAINT
+	// PAINT + GUI
 	private MouseTrail trail = new MouseTrail(0, 255, 255, 2000, this);
 	private MouseCursor cursor = new MouseCursor(25, 3, Color.ORANGE, this);
 	private int beginningXP;
@@ -26,7 +26,6 @@ public class Main extends Script {
 	private int xpGained;
 	private long XpHourly;
 	private long startTime = System.currentTimeMillis();
-
 	private GUI gui = new GUI();
 	private LOGLIST loglist;
 	private AREALIST arealist;
@@ -46,14 +45,13 @@ public class Main extends Script {
 	int REDWOOD_LOGS = 19669;
 
 	// XAREA
-
 	Area PORTPHASMATYS_XAREA = new Area(3699, 3475, 3663, 3472);// phasmatys accepted area
 	Area EDGEVILLE_XAREA = new Area(3111, 3505, 3074, 3500);// edge xarea
 	Area FALADOR_XAREA = new Area(3032, 3366, 2997, 3359);// falador accepted area
 	Area SEERS_XAREA = new Area(2733, 3484, 2706, 3486);// seers accepted area
 	Area GE_XAREA = new Area(3146, 3506, 3193, 3473);// ge xarea
-	Area VARROCKEAST_XAREA = new Area(3240, 3430, 3286, 3428); // east-varrock accepted area
-	Area VARROCKWEST_XAREA = new Area(3209, 3430, 3170, 3428); // west-varrock accepted area
+	Area VARROCKEAST_XAREA = new Area(3290, 3430, 3240, 3428);// east varrock x area
+	Area VARROCKWEST_XAREA = new Area(3173, 3432, 3209, 3428);// west varrock xarea
 
 	// BANKS
 	Area GE_BANK = new Area(3160, 3494, 3169, 3485);// ge bank
@@ -64,7 +62,6 @@ public class Main extends Script {
 	Area DRAYNOR_BANK = new Area(3091, 3246, 3096, 3240);// draynor bank area
 	Area EDGEVILLE_BANK = new Area(3098, 3499, 3091, 3488);// edgeville bank
 	Area PORTPHASMATYS_BANK = new Area(3691, 3471, 3686, 3461);// port phasmatys bank area
-	// FMING AREAS
 
 	// FMing START AREAS
 	Area[] FALADOREAST_STARTAREA = { new Area(3032, 3359, 3031, 3359), new Area(3032, 3360, 3031, 3360),
@@ -73,9 +70,8 @@ public class Main extends Script {
 	Area SEERS_STARTAREA[] = { new Area(2734, 3486, 2733, 3486), new Area(2733, 3485, 2732, 3485),
 			new Area(2732, 3486, 2731, 3486), new Area(2733, 3484, 2730, 3484), new Area(2731, 3485, 2730, 3485),
 			new Area(2730, 3486, 2730, 3486) };// seers start area// seers start area
-	Area VARROCKWEST_STARTAREA[] = { new Area(3199, 3432, 3199, 3431), new Area(3198, 3428, 3198, 3429),
-			new Area(3198, 3430, 3198, 3431), new Area(3198, 3432, 3196, 3432), new Area(3197, 3431, 3197, 3428),
-			new Area(3199, 3430, 3199, 3428) };
+	Area VARROCKWEST_STARTAREA[] = { new Area(3208, 3429, 3207, 3429), new Area(3208, 3430, 3207, 3430),
+			new Area(3208, 3428, 3207, 3428), new Area(3200, 3431, 3199, 3431), new Area(3200, 3432, 3199, 3432) };// west
 	Area VARROCKEAST_STARTAREA[] = { new Area(3281, 3429, 3282, 3429), new Area(3281, 3428, 3282, 3428),
 			new Area(3285, 3429, 3285, 3428), new Area(3286, 3428, 3286, 3429), new Area(3284, 3428, 3284, 3429),
 			new Area(3283, 3428, 3283, 3429) };// varrock-east star
@@ -93,50 +89,92 @@ public class Main extends Script {
 																					// area start
 
 	public void bank() throws InterruptedException {
+		if (!getBankArea().contains(myPlayer())) {
+			pLog = "Walking to start area.";
+			walkToBankArea();
+		}
+		if (getBankArea().contains(myPlayer()) && !checkTinderbox()) {
+			pLog = "Withdrawing tinderbox & logs";
+			getBank().open();
+			sleep(random(800, 1600));
+			getBank().withdraw(TINDERBOX, 1);
+			sleep(random(800, 1600));
+			withdrawLogs();
+		} else if (checkTinderbox() && getBankArea().contains(myPlayer())) {
+			pLog = "Withdrawing logs";
+			withdrawLogs();
+		}
+	}
+
+	public void checkInventory() throws InterruptedException {
+		if (!getInventory().onlyContains(getLogs(), TINDERBOX)) {
+			pLog = "Banking wrong items...";
+			walkToBankArea();
+			getBank().open();
+			sleep(random(1000, 2000));
+			getBank().depositAllExcept(TINDERBOX, getLogs());
+		}
+	}
+
+	public void walkToBankArea() {
 		if ((!getInventory().contains(TINDERBOX) && !getInventory().contains(getLogs())
 				|| (!getInventory().contains(getLogs()) && !myPlayer().isAnimating()))) {
 			pLog = "Walking to " + arealist.toString();
 			getWalking().webWalk(getBankArea());
+		}
+	}
+
+	public void walkToFMArea() {
+		if (checkTinderbox() && getInventory().contains(getLogs())) {
+			pLog = "Walking to a random tile";
+			getWalking().webWalk(getFMArea());
+		}
+	}
+
+	public boolean checkTinderbox() {
+		return getInventory().contains(TINDERBOX, 1);
+	}
+
+	public void withdrawLogs() throws InterruptedException {
+		if (!getInventory().contains(getLogs()) && !myPlayer().isAnimating()) {
 			if (getBankArea().contains(myPlayer())) {
-				pLog = "Opening bank...";
 				getBank().open();
-				sleep(random(1000, 2000));
-				pLog = "Withdrawing Tinderbox...";
-				getBank().withdraw(TINDERBOX, 1);
-				sleep(random(1000, 2000));
+				sleep(random(800, 1600));
 				pLog = "Withdrawing logs...";
 				getBank().withdrawAll(getLogs());
-				sleep(random(1000, 2000));
-				pLog = "Walking to a random tile";
-				getWalking().webWalk(getFMArea());
+				sleep(random(800, 1600));
+			}
+			if (!getBank().contains(getLogs())) {
+				log("No logs left. Stopping script.");
+				stop();
 			}
 		}
 	}
 
 	public void firemaking() throws InterruptedException {
+		// Checks to see if player is in the firemaking area and has a tinderbox and
+		// logs
 		if (getInventory().contains(TINDERBOX, 1)
 				&& (getInventory().contains(getLogs()) && xArea().contains(myPosition()))) {
-			do {
-				if (checkSpot()) {
-					pLog = "Changing spot...";
-					getWalking().walk(getFMArea());
-				}
-				pLog = "Using tinderbox..";
-				getInventory().interact("Use", TINDERBOX);
-				if (myPlayer().isAnimating()) {
-					getInventory().hover(getLogs());
-				}
-				if (!myPlayer().isAnimating()) {
-					pLog = "Lighting logs..";
-					getInventory().interact("Use", getLogs());
-					sleep(random(1050, 2000));
-				}
-			} while (getInventory().contains(getLogs()));
+			if (checkSpot()) {
+				pLog = "Changing spot...";
+				walkToFMArea();
+			}
+			pLog = "Using tinderbox..";
+			getInventory().interact("Use", TINDERBOX);
+			if (myPlayer().isAnimating()) {
+				getInventory().hover(getLogs());
+			}
+			if (!myPlayer().isAnimating()) {
+				pLog = "Lighting logs..";
+				getInventory().interact("Use", getLogs());
+				sleep(random(600, 1200));
+			}
+			// check if the inventory contains logs / walks to fm area
 		} else if (getInventory().contains(getLogs())) {
 			pLog = "Walking to " + getFMArea();
-			getWalking().walk(getFMArea());
+			walkToFMArea();
 		}
-
 	}
 
 	public boolean checkSpot() {
@@ -204,7 +242,6 @@ public class Main extends Script {
 			return PORTPHASMATYS_STARTAREA[random(0, 3)];
 		}
 		return null;
-
 	}
 
 	public int getLogs() {
@@ -230,7 +267,9 @@ public class Main extends Script {
 
 	@Override
 	public int onLoop() throws InterruptedException {
-		bank();
+		checkInventory();
+		walkToBankArea();
+		withdrawLogs();
 		firemaking();
 		return random(200, 300);
 	}
@@ -257,6 +296,8 @@ public class Main extends Script {
 		}
 		loglist = gui.getSelectedlog();
 		arealist = gui.getSelectedBank();
+		checkInventory();
+		bank();
 	}
 
 	@Override

@@ -22,6 +22,7 @@ public class GUI {
 		mainDialog.setTitle("eZ Firemaker");
 		mainDialog.setModal(true);
 		mainDialog.setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
+		mainDialog.setLocationRelativeTo(null);
 
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
