@@ -237,9 +237,6 @@ public class Main extends Script {
 
 	@Override
 	public void onStart() throws InterruptedException {
-		beginningXP = skills.getExperience(Skill.FIREMAKING);
-		pLog = "Starting up...";
-		log("ez Firemaker starting.");
 		try {
 			SwingUtilities.invokeAndWait(() -> {
 				beginningXP = skills.getExperience(Skill.FIREMAKING);
